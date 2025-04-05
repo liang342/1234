@@ -3,125 +3,68 @@
 <head>
     <title>新手蚂蚁指南</title>
     <style>
-        /* 通用样式 */
-        body { font-family: Arial, sans-serif; margin: 20px; padding: 0; }
-        h2, h3, h4 { margin: 0 0 10px; }
-        ul { list-style-type: none; padding: 0; }
-        li { margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .article-meta { margin-top: 10px; color: #555; font-size: 14px; }
-        .article-meta span { margin-right: 10px; }
-        .article-controls { margin-top: 10px; }
-        .admin-only { display: none; }
-        .admin-mode .admin-only { display: block; }
-
-        /* 表单样式 */
-        #articleForm { border: 1px solid #eee; padding: 15px; background: #f9f9f9; }
-        #articleForm h3 { margin-bottom: 15px; }
-        #articleForm input, #articleForm textarea { width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        #articleForm button { background: #007BFF; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
-        #articleForm button:hover { background: #0056b3; }
-
-        /* 登录样式 */
-        #loginForm { margin-bottom: 20px; }
-        #loginForm label, #loginForm select, #loginForm button { margin: 5px 0; display: block; }
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; }
+        #chat { height: 300px; border: 1px solid #ccc; overflow-y: scroll; }
     </style>
 </head>
 <body>
-    <!-- 登录表单 -->
-    <div id="loginForm">
-        <h2>登录</h2>
-        <label for="userList">选择用户：</label>
+    <h1>欢迎使用新手指南</h1>
+    
+    <!-- 用户登录区 -->
+    <div id="login">
         <select id="userList">
-            <option value="1">普通用户1</option>
-            <option value="2">普通用户2</option>
-            <option value="admin">管理员</option>
+            <option value="">--选择你的账号--</option>
+            <option value="user1">蚂蚁成员1</option>
+            <option value="user2">蚂蚁成员2</option>
+            <!-- 手动添加更多用户 -->
         </select>
-        <button onclick="login()">登录</button>
+        <button onclick="login()">进入</button>
     </div>
 
-    <!-- 文章发布表单 -->
-    <div id="articleForm" class="admin-only">
-        <h3>发布新指南</h3>
-        <input type="text" id="articleTitle" placeholder="文章标题">
-        <textarea id="articleContent" placeholder="内容（支持HTML）" rows="5"></textarea>
-        <button onclick="publishArticle()">发布</button>
-    </div>
-
-    <!-- 文章列表 -->
+    <!-- 主功能区（登录后显示） -->
     <div id="main" style="display:none;">
-        <h2>知识库 
-            <button class="admin-only" onclick="toggleEditor()">📝 写指南</button>
-        </h2>
-        <ul id="articles"></ul>
+        <h2>群聊区</h2>
+        <div id="chat"></div>
+        <input type="text" id="message" placeholder="输入消息...">
+        <button onclick="sendMsg()">发送</button>
+        
+        <h2>文章列表</h2>
+        <ul id="articles">
+            <li><a href="#art1">入门指南</a></li>
+            <!-- 手动添加文章链接 -->
+        </ul>
     </div>
 
     <script>
-        // 模拟用户数据
+        // 内置用户数据
         const users = {
-            "1": { name: "普通用户1", role: "user" },
-            "2": { name: "普通用户2", role: "user" },
-            "admin": { name: "系统管理员", role: "admin" }
+            user1: { name: "蚂蚁成员1", role: "member" },
+            user2: { name: "蚂蚁成员2", role: "admin" }
         };
-
-        // 初始化文章数据存储
-        let articles = JSON.parse(localStorage.getItem('articles')) || [
-            { 
-                id: 1, 
-                title: "入门指南", 
-                content: "<h4>新人必读</h4><p>1. 每日签到...</p>",
-                author: "系统管理员",
-                timestamp: "2024-03-20"
-            }
-        ];
 
         // 登录功能
         function login() {
             const userId = document.getElementById("userList").value;
-            if (userId && users[userId]) {
-                const user = users[userId];
-                localStorage.setItem("currentUser", JSON.stringify(user));
-                
-                // 管理员模式激活
-                if(user.role === 'admin') {
-                    document.body.classList.add('admin-mode');
-                } else {
-                    document.body.classList.remove('admin-mode');
-                }
-                
-                loadArticles();
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('main').style.display = 'block';
-            } else {
-                alert("请选择有效的用户！");
+            if (userId) {
+                localStorage.setItem("currentUser", userId);
+                document.getElementById("login").style.display = "none";
+                document.getElementById("main").style.display = "block";
+                loadChat();
             }
         }
 
-        // 动态加载文章
-        function loadArticles() {
-            const container = document.getElementById('articles');
-            container.innerHTML = articles.map(article => `
-                <li data-id="${article.id}">
-                    <h4>${article.title}</h4>
-                    <div class="article-content">${article.content}</div>
-                    <div class="article-meta">
-                        <span>作者：${article.author}</span>
-                        <span>${article.timestamp}</span>
-                        <div class="article-controls admin-only">
-                            <button onclick="editArticle(${article.id})">✏️编辑</button>
-                            <button onclick="deleteArticle(${article.id})">🗑️删除</button>
-                        </div>
-                    </div>
-                </li>
-            `).join('');
+        // 聊天功能（基于腾讯文档）
+        function loadChat() {
+            document.getElementById("chat").innerHTML = `
+                <iframe src="https://docs.qq.com/sheet/?tab=chat" 
+                        style="width:100%;height:100%;border:none;"></iframe>`;
         }
 
-        // 管理员发布功能
-        function publishArticle() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            if (!user || user.role !== 'admin') {
-                alert("您没有权限发布文章！");
-                return;
-            }
-
+        // 手动跳转链接
+        function goTo(url) {【腾讯文档】时间
+https://docs.qq.com/sheet/DT1BjZEN3Z3F4eG9o?tab=2o27w1
+            window.open(url, "_blank");
+        }
+    </script>
 </body>
 </html>
