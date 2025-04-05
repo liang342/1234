@@ -3,66 +3,118 @@
 <head>
     <title>新手蚂蚁指南</title>
     <style>
-        body { font-family: Arial; max-width: 800px; margin: 0 auto; }
-        #chat { height: 300px; border: 1px solid #ccc; overflow-y: scroll; }
+        /* 新增管理员专属样式 */
+        .admin-only { display: none; }
+        .admin-mode .admin-only { display: block; }
+        .article-controls { margin-top: 10px; }
+        #articleForm { border: 1px solid #eee; padding: 15px; }
     </style>
 </head>
 <body>
-    <h1>欢迎使用新手指南</h1>
-    
-    <!-- 用户登录区 -->
-    <div id="login">
-        <select id="userList">
-            <option value="">--选择你的账号--</option>
-            <option value="user1">蚂蚁成员1</option>
-            <option value="user2">蚂蚁成员2</option>
-            <!-- 手动添加更多用户 -->
-        </select>
-        <button onclick="login()">进入</button>
+    <!-- 新增文章发布表单 -->
+    <div id="articleForm" class="admin-only">
+        <h3>发布新指南</h3>
+        <input type="text" id="articleTitle" placeholder="文章标题">
+        <textarea id="articleContent" placeholder="内容（支持HTML）" rows="5"></textarea>
+        <button onclick="publishArticle()">发布</button>
     </div>
 
-    <!-- 主功能区（登录后显示） -->
+    <!-- 修改后的文章列表 -->
     <div id="main" style="display:none;">
-        <h2>群聊区</h2>
-        <div id="chat"></div>
-        <input type="text" id="message" placeholder="输入消息...">
-        <button onclick="sendMsg()">发送</button>
-        
-        <h2>文章列表</h2>
-        <ul id="articles">
-            <li><a href="#art1">入门指南</a></li>
-            <!-- 手动添加文章链接 -->
-        </ul>
+        <h2>知识库 
+            <button class="admin-only" onclick="toggleEditor()">📝 写指南</button>
+        </h2>
+        <ul id="articles"></ul>
     </div>
 
     <script>
-        // 内置用户数据
-        const users = {
-            user1: { name: "蚂蚁成员1", role: "member" },
-            user2: { name: "蚂蚁成员2", role: "admin" }
-        };
+        // 初始化文章数据存储
+        let articles = JSON.parse(localStorage.getItem('articles')) || [
+            { 
+                id: 1, 
+                title: "入门指南", 
+                content: "<h4>新人必读</h4><p>1. 每日签到...</p>",
+                author: "系统管理员",
+                timestamp: "2024-03-20"
+            }
+        ];
 
-        // 登录功能
+        // 增强登录功能
         function login() {
             const userId = document.getElementById("userList").value;
-            if (userId) {
-                localStorage.setItem("currentUser", userId);
-                document.getElementById("login").style.display = "none";
-                document.getElementById("main").style.display = "block";
-                loadChat();
+            if (userId && users[userId]) {
+                const user = users[userId];
+                localStorage.setItem("currentUser", JSON.stringify(user));
+                
+                // 管理员模式激活
+                if(user.role === 'admin') {
+                    document.body.classList.add('admin-mode');
+                }
+                
+                loadArticles();
             }
         }
 
-        // 聊天功能（基于腾讯文档）
-        function loadChat() {
-            document.getElementById("chat").innerHTML = `
-                <iframe src="https://docs.qq.com/sheet/你的表格ID?tab=chat" 
-                        style="width:100%;height:100%;border:none;"></iframe>`;
+        // 动态加载文章
+        function loadArticles() {
+            const container = document.getElementById('articles');
+            container.innerHTML = articles.map(article => `
+                <li data-id="${article.id}">
+                    <h4>${article.title}</h4>
+                    <div class="article-content">${article.content}</div>
+                    <div class="article-meta">
+                        <span>作者：${article.author}</span>
+                        <span>${article.timestamp}</span>
+                        <div class="article-controls admin-only">
+                            <button onclick="editArticle(${article.id})">✏️编辑</button>
+                            <button onclick="deleteArticle(${article.id})">🗑️删除</button>
+                        </div>
+                    </div>
+                </li>
+            `).join('');
         }
 
-        // 手动跳转链接
-        function goTo(url) {
-            window.open(url, "_blank");
+        // 管理员发布功能
+        function publishArticle() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if(user?.role !== 'admin') return;
+            
+            const newArticle = {
+                id: Date.now(),
+                title: document.getElementById('articleTitle').value,
+                content: document.getElementById('articleContent').value,
+                author: user.name,
+                timestamp: new Date().toLocaleDateString()
+            };
+            
+            articles.push(newArticle);
+            localStorage.setItem('articles', JSON.stringify(articles));
+            loadArticles();
+            toggleEditor();
+        }
+
+        // 文章编辑功能
+        function editArticle(id) {
+            const article = articles.find(a => a.id === id);
+            document.getElementById('articleTitle').value = article.title;
+            document.getElementById('articleContent').value = article.content;
+            toggleEditor(true);
+        }
+
+        // 删除功能
+        function deleteArticle(id) {
+            if(confirm('确定删除这篇指南？')) {
+                articles = articles.filter(a => a.id !== id);
+                localStorage.setItem('articles', JSON.stringify(articles));
+                loadArticles();
+            }
+        }
+
+        // 切换编辑器显示
+        function toggleEditor(show = false) {
+            const form = document.getElementById('articleForm');
+            form.style.display = show ? 'block' : 
+                (form.style.display === 'block' ? 'none' : 'block');
         }
     </script>
 </body>
