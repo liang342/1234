@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>新手蚂蚁指南</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; }
+        #chat { height: 300px; border: 1px solid #ccc; overflow-y: scroll; }
+    </style>
+</head>
+<body>
+    <h1>欢迎使用新手指南</h1>
+    
+    <!-- 用户登录区 -->
+    <div id="login">
+        <select id="userList">
+            <option value="">--选择你的账号--</option>
+            <option value="user1">蚂蚁成员1</option>
+            <option value="user2">蚂蚁成员2</option>
+            <!-- 手动添加更多用户 -->
+        </select>
+        <button onclick="login()">进入</button>
+    </div>
+
+    <!-- 主功能区（登录后显示） -->
+    <div id="main" style="display:none;">
+        <h2>群聊区</h2>
+        <div id="chat"></div>
+        <input type="text" id="message" placeholder="输入消息...">
+        <button onclick="sendMsg()">发送</button>
+        
+        <h2>文章列表</h2>
+        <ul id="articles">
+            <li><a href="#art1">入门指南</a></li>
+            <!-- 手动添加文章链接 -->
+        </ul>
+    </div>
+
+    <script>
+        // 内置用户数据
+        const users = {
+            user1: { name: "蚂蚁成员1", role: "member" },
+            user2: { name: "蚂蚁成员2", role: "admin" }
+        };
+
+        // 登录功能
+        function login() {
+            const userId = document.getElementById("userList").value;
+            if (userId) {
+                localStorage.setItem("currentUser", userId);
+                document.getElementById("login").style.display = "none";
+                document.getElementById("main").style.display = "block";
+                loadChat();
+            }
+        }
+
+        // 聊天功能（基于腾讯文档）
+        function loadChat() {
+            document.getElementById("chat").innerHTML = `
+                <iframe src="https://docs.qq.com/sheet/你的表格ID?tab=chat" 
+                        style="width:100%;height:100%;border:none;"></iframe>`;
+        }
+
+        // 手动跳转链接
+        function goTo(url) {
+            window.open(url, "_blank");
+        }
+    </script>
+</body>
+</html>
